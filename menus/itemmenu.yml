@@ -9,6 +9,8 @@ items:
     command: 
     - 'console:itemmenu admin reload'
     - 'broadcast:%prefix% Reloaded!'
+    permission: 'admin'
+    hide: true
   8: 
     type: '35:13'
     display: '&2Open'

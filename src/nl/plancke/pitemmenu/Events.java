@@ -18,8 +18,7 @@ public class Events extends JavaPlugin implements Listener {
 	
     @EventHandler(priority = EventPriority.HIGH)
     public void InventoryCloseEvent(InventoryCloseEvent event) {
-    	Player player = (Player) event.getPlayer();
-    	players.remove(player);
+    	players.remove(event.getPlayer());
     }
     
     @EventHandler(priority = EventPriority.HIGH)
@@ -41,8 +40,7 @@ public class Events extends JavaPlugin implements Listener {
 	        FileConfiguration curPlayer = players.get(player);
 	        
 	        // permission check
-	        String permission = "";
-	        permission = (String) curPlayer.get(slot + ".permission"); 
+	        String permission = (String) curPlayer.get(slot + ".permission"); 
 	        if(permission != null) {
 	        	if(!player.hasPermission(permission)){ return; }
 	        }
