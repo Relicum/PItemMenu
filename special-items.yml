@@ -1,0 +1,9 @@
+# Special Items are items that are used frequently
+# place them here and you will only have to edit them once.
+Creator:
+  type: 339
+  display: '&bInfo'
+  lore: '&7PItemMenu'
+  command: 
+  - 'broadcast:&bCreator\: &7Plancke'
+  - 'broadcast:&bDocumentor\: &7Jaaakee'

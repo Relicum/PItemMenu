@@ -1,0 +1,20 @@
+title: '&k||| &rPItemMenu Info &r&k|||'
+items:
+  1: Creator
+  2: Documenter
+  7: 
+    type: '35:1'
+    display: '&2Reload'
+    lore: '&aOpen this menu again'
+    command: 
+    - 'console:itemmenu admin reload'
+    - 'broadcast:%prefix% Reloaded!'
+  8: 
+    type: '35:13'
+    display: '&2Open'
+    lore: '&aOpen this menu again'
+    command: 'open:itemmenu'
+  9: 
+    type: '35:14'
+    display: '&4Exit'
+    command: 'closepitemmenu'

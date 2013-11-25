@@ -1,0 +1,18 @@
+# Console Messages
+logMessage: "%player% has executed the command %command%."
+logMessage-op: "%player% has executed the command %command% as OP."
+defaultGen: "Default files generated."
+reload: "Reloaded."
+onlyPlayers: "Itemmenu's can only be opened by players."
+opFix: "Player %player% was opped, de-opping now!"
+exitCommand: "closepitemmenu"
+
+menu:
+  notExist: "This menu does not exist (%menu%)."
+  notPerms: "You do not have permission to open this menu (%menu%)!"
+  notFound: "Special item %item% was not found in the file skipping slot."
+  tooBig: "This menu is too big, trying to set size to %size%."
+  
+usage:
+  normal: "Usage: /itemmenu open <menu>"
+  admin: "Usage: /itemmenu <open/admin> <menu/action>"
