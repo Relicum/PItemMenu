@@ -57,9 +57,10 @@ public class Events extends JavaPlugin implements Listener {
 		        	player.closeInventory();
 					return;
 		        }
-		        	 
+		        
+		        String splitRegex = "(?<!\\\\):";
 	        	logCommand(player, curCommand);
-	        	if(curCommand.split("(?<!\\\\):")[0].equals("op")) { 
+	        	if(curCommand.split(splitRegex)[0].equals("op")) { 
 		        	if(!player.isOp()) {
 		        		setTempOp(player, true);
 		        		player.setOp(true);
@@ -72,18 +73,18 @@ public class Events extends JavaPlugin implements Listener {
 		        	continue;
 		        } 
 		        
-		        if(curCommand.split("(?<!\\\\):")[0].equals("console")) { 
-		        	server.dispatchCommand(console, curCommand.split(":")[1].replace("\\", ""));
+		        if(curCommand.split(splitRegex)[0].equals("console")) { 
+		        	server.dispatchCommand(console, curCommand.split(splitRegex)[1].replace("\\", ""));
 		        	continue;
 		        }
 		        
-		        if(curCommand.split("(?<!\\\\):")[0].equals("open")) { 
-		        	player.performCommand("itemmenu open " + curCommand.split(":")[1].replace("\\", ""));
+		        if(curCommand.split(splitRegex)[0].equals("open")) { 
+		        	player.performCommand("itemmenu open " + curCommand.split(splitRegex)[1].replace("\\", ""));
 		        	continue;
 		        }
 		        
-		        if(curCommand.split("(?<!\\\\):")[0].equals("broadcast")) { 
-		        	server.broadcastMessage(curCommand.split("(?<!\\\\):")[1].replace("\\", ""));
+		        if(curCommand.split(splitRegex)[0].equals("broadcast")) { 
+		        	server.broadcastMessage(curCommand.split(splitRegex)[1].replace("\\", ""));
 		        	continue;
 		        }
 		        	
