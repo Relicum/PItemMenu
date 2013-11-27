@@ -5,5 +5,5 @@ Creator:
   display: '&bInfo'
   lore: '&7PItemMenu'
   command: 
-  - 'broadcast:&bCreator\: &7Plancke'
-  - 'broadcast:&bDocumentor\: &7Jaaakee'
+  - 'broadcast:&bCreator: &7Plancke'
+  - 'broadcast:&bDocumentor: &7Jaaakee'
