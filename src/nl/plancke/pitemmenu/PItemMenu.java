@@ -44,14 +44,14 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		server = getServer();
 		console = server.getConsoleSender();
 		version = getDescription().getVersion();
-		
+
 		reloadConfigs();
 		checkOps();
-		
+
 		Bukkit.getServer().getPluginManager().registerEvents(new Events(), this);
-		
+
 		if(config.getBoolean("check-update")) { Updater.checkUpdate(); }
-		
+
 		consoleTagMessage("Enabled v" + version + "!");
 	}
 	@Override
@@ -66,9 +66,9 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			if(args.length == 0) { return showUsage(sender); }
 
 			if(args[0].equalsIgnoreCase("admin")) {
-				if(args.length > 2 || args.length == 1) {
-					return showUsage(sender);
-				} else if(args[1].equalsIgnoreCase("reload") && (sender.hasPermission("itemmenu.admin.reload") || sender.isOp())) {
+				if(args.length == 1) { return showUsage(sender); } 
+
+				if(args[1].equalsIgnoreCase("reload") && (sender.hasPermission("itemmenu.admin.reload") || sender.isOp())) {
 					reloadConfigs();
 					consoleTagMessage(getLocale("reload")); 
 					if(sender instanceof Player) {
@@ -80,20 +80,18 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			}
 
 			if(args[0].equalsIgnoreCase("open")) {
-				if(!(sender instanceof Player)){ // Player Check
+				if(!(sender instanceof Player)){ // Console Check
 					consoleTagMessage(getLocale("onlyPlayers")); 
 					return true;
 				}
 
-				if(args.length == 1){ // Empty arguments check
-					return showUsage(sender);
-				}
+				if(args.length == 1){ return showUsage(sender); }
 
 				Player player = (Player) sender;
 
-				if(sender.isOp() || sender.hasPermission("itemmenu.open." + args[1])) { // Permission Check					
-					String name = args[1];
-					File menuFile = new File(dataFolder + File.separator + "menus" + File.separator + args[1] + ".yml");
+				String name = args[1];
+				if(sender.isOp() || sender.hasPermission("itemmenu.open." + name)) { // Permission Check					
+					File menuFile = new File(dataFolder + File.separator + "menus" + File.separator + name + ".yml");
 					if(!menuFile.exists()) { // Check if the menu exists
 						playerTagMessage(player, getLocale("menu.notExist").replace("%menu%", name));
 						return true;
@@ -101,11 +99,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 					OpenMenu(player, menuFile);
 
 				} else {
-					playerTagMessage(player, getLocale("menu.notPerms").replace("%menu%", args[1]));
+					playerTagMessage(player, getLocale("menu.notPerms").replace("%menu%", name));
 				}
 				return true;
 			}
-
 			return showUsage(sender);
 		} 
 		return false; 
@@ -123,28 +120,20 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 	public void OpenMenu(Player player, File menuFile) { 
 		FileConfiguration specialItems = YamlConfiguration.loadConfiguration(new File(dataFolder + "//special-items.yml"));
-		FileConfiguration menu = YamlConfiguration.loadConfiguration(menuFile); // Load Menu from Path
-		FileConfiguration curMenu = menu; 
+		FileConfiguration curMenu, menu = YamlConfiguration.loadConfiguration(menuFile); // Load Menu from Path
 		FileConfiguration commandMenu = new YamlConfiguration();
-
 		Set<String> items = menu.getConfigurationSection("items").getKeys(false);
 
-		String title = replaceVars(player, menu.getString("title")); // Get Title
-		Integer maxSlot = Integer.parseInt(Collections.max(items)) - 1;
-		Integer size = (int) (maxSlot / 9 + 1) * 9; // Dynamically set size
+		String title = replaceVars(player, menu.getString("title"));
 
-		if(size > 54) { 
-			playerTagMessage(player, getLocale("menu.tooBig").replace("%size%", size.toString()));
-			return;
-		}
+		Integer maxSlot = Integer.parseInt(Collections.max(items)) - 1;
+		Integer size = (int) (maxSlot / 9 + 1) * 9;
+		if(size > 54) { playerTagMessage(player, getLocale("menu.tooBig").replace("%size%", size.toString())); return; }
 
 		// Construct the menu
-
-		Inventory inventory = Bukkit.getServer().createInventory(player,  size, title);
-		String itemPath;
-
+		Inventory inventory = Bukkit.getServer().createInventory(player, size, title);
 		for(String curItem : items ){
-			itemPath = "items.";
+			String itemPath = "items.";
 			curMenu = menu;
 			Integer pos = Integer.parseInt(curItem) -1;
 
@@ -159,14 +148,37 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				} else { continue; } // Go back to start of loop, Special item was not found
 			}
 
-			int amount = 1; // Default value
+			// Durability check in Type
+			String type = curMenu.get(itemPath + curItem + ".type").toString();
+			Integer itemID = 0;
 			short durability = 0; 
-			String display = null; 
-			String permission = null;
-			
-			ArrayList<String> lore = new ArrayList<String>();
+			if(type.contains(":")) {
+				String[] typeData = type.split(":");
+				itemID = Integer.parseInt(typeData[0]);
+				durability = Short.parseShort(typeData[1]);
+			} else {
+				itemID = Integer.parseInt(type);
+			}
+
+			// General Item data gathering
+			int amount = 1;
+			String display = null, permission = null;
+			try { amount 	 = curMenu.getInt(itemPath + curItem + ".amount"); } catch (Exception e) { }
+			try { permission = curMenu.getString(itemPath + curItem + ".permission"); } catch (Exception e) { }
+			try { display 	 = replaceVars(player, curMenu.getString(itemPath + curItem + ".display")); } catch (Exception e) { }
+
+			// Command gathering
+			ArrayList<String> command = new ArrayList<String>(), lore = new ArrayList<String>();
+			if(curMenu.get(itemPath + curItem + ".command") instanceof String) { // Catch single lined commands
+				command.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".command")));
+			} else {
+				for(String commandString : curMenu.getStringList(itemPath + curItem + ".command")) {
+					command.add(replaceVars(player, commandString));
+				}
+			}
+
 			try {
-				if(curMenu.get(itemPath + curItem + ".lore") instanceof String) { // Catch single lined Lore's
+				if(curMenu.get(itemPath + curItem + ".lore") instanceof String) { 
 					lore.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".lore")));
 				} else {
 					for(String loreString : curMenu.getStringList(itemPath + curItem + ".lore")) {
@@ -175,60 +187,18 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				}
 			} catch (Exception e) { }
 
-			// Durability check in Type
-			String type = curMenu.get(itemPath + curItem + ".type").toString();
-			Integer itemID = 0;
-			if(type.contains(":")) {
-				String[] typeData = type.split(":");
-				itemID = Integer.parseInt(typeData[0]);
-				durability = (short) Integer.parseInt(typeData[1]);
-			} else {
-				itemID = Integer.parseInt(type);
-			}
-			
-			// General Item data gathering
-			try { amount = (Integer) curMenu.get(itemPath + curItem + ".amount"); } catch (Exception e) { }
-			try { display =  replaceVars(player, (String) curMenu.get(itemPath + curItem + ".display")); } catch (Exception e) { }
-			try { permission =  (String) curMenu.get(itemPath + curItem + ".permission"); } catch (Exception e) { }
-			try { 
-				Boolean hide = curMenu.getBoolean(itemPath + curItem + ".hide"); 
-				if(hide && !permission.equals(null) && !player.hasPermission(permission)) { continue; }
-			} catch (Exception e) { }
-			
-			// Command gathering
-			ArrayList<String> command = new ArrayList<String>();
-			if(curMenu.get(itemPath + curItem + ".command") instanceof String) { // Catch single lined commands
-				command.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".command")));
-			} else {
-				for(String commandString : curMenu.getStringList(itemPath + curItem + ".command")) {
-					command.add(replaceVars(player, commandString));
-				}
-			}
-			
-			ItemStack item = new ItemStack(Material.getMaterial(itemID), amount, durability ); // Build the ItemStack
-			inventory.setItem(pos, setName(item, display, lore)); // Set Item Lore, Display and add it to the right spot
-			
-			commandMenu.set(pos + ".command", command); // Link Command of item to the right spot
+
+			/* Building the item */
+			ItemStack item = new ItemStack(Material.getMaterial(itemID), amount, durability );
+			inventory.setItem(pos, setName(item, display, lore));
+
+			commandMenu.set(pos + ".command", command);
 			commandMenu.set(pos + ".permission", permission);
 		}
 
 		player.closeInventory();
 		players.put(player , commandMenu); // Save commands linked to player object and position
 		player.openInventory(inventory); // Show Menu to player
-	}
-
-	public boolean showUsage(CommandSender sender) {
-		if(!(sender instanceof Player)){ // If Console fails send admin usage.
-			consoleTagMessage(getLocale("usage.admin")); 
-		}  else {
-			Player player = (Player) sender;
-			if(sender.hasPermission("itemmenu.admin")) {		
-				playerTagMessage(player, getLocale("usage.admin")); // If Player has the admin permission show admin usage.
-			} else {
-				playerTagMessage(player, getLocale("usage.normal")); // If Player fails send usage.
-			}
-		}
-		return true;
 	}
 
 	public void reloadConfigs(){ 
@@ -244,15 +214,16 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		specialItem = YamlConfiguration.loadConfiguration(new File(dataFolder, "special-item.yml"));
 
 		if (newlyCreated) {
-			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "itemmenu.yml").exists()){ saveResource("menus/itemmenu.yml", false); }
-			// only create the default menu's if a config file is missing
+			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "itemmenu.yml").exists()){ 
+				saveResource("menus/itemmenu.yml", false); 
+			}
 			consoleTagMessage(getLocale("defaultGen"));
 		}
 
 		reloadConfig();
 	}
 
-	public void checkOps(){
+	public void checkOps() {
 		FileConfiguration tempOps = YamlConfiguration.loadConfiguration(new File(dataFolder, "temp-opped.yml"));
 		for (String playerName : tempOps.getStringList("players")){
 			Player player = (Player) server.getOfflinePlayer(playerName);
