@@ -5,7 +5,7 @@ items:
   7: 
     type: '35:1'
     display: '&2Reload'
-    lore: '&aOpen this menu again'
+    lore: '&aReload the plugin'
     command: 
     - 'console:itemmenu admin reload'
     - 'broadcast:%prefix% Reloaded!'

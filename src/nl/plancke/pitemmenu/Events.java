@@ -38,7 +38,7 @@ public class Events extends JavaPlugin implements Listener {
 
 			// permission check
 			String permission = (String) curPlayer.get(slot + ".permission"); 
-			if(permission == null || !player.hasPermission(permission)){ return; }
+			if(permission != null && !player.hasPermission(permission)){ return; }
 
 			// Perform Command
 			ArrayList<String> command = (ArrayList<String>) curPlayer.getStringList(slot + ".command");

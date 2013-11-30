@@ -1,5 +1,5 @@
 /*
- PItemMenu v1.07 by Plancke
+ PItemMenu v1.1.3 by Plancke
  Feel free to use all of the code in here for your
  own projects but give me credit when you do.
  */
@@ -7,11 +7,7 @@
 package nl.plancke.pitemmenu;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -22,9 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.*;
 import org.bukkit.configuration.file.*;
 
 import static nl.plancke.pitemmenu.Functions.*;
@@ -123,27 +117,32 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		FileConfiguration curMenu, menu = YamlConfiguration.loadConfiguration(menuFile); // Load Menu from Path
 		FileConfiguration commandMenu = new YamlConfiguration();
 		Set<String> items = menu.getConfigurationSection("items").getKeys(false);
-
-		String title = replaceVars(player, menu.getString("title"));
-
-		Integer maxSlot = Integer.parseInt(Collections.max(items)) - 1;
-		Integer size = (int) (maxSlot / 9 + 1) * 9;
+		
+		Integer maxSlot = 0;
+		for(String slot : items ){ 
+			if(Integer.parseInt(slot) > maxSlot) {
+				maxSlot = Integer.parseInt(slot);
+			}
+		}
+		Integer size = (int) ((maxSlot - 1) / 9 + 1) * 9;
 		if(size > 54) { playerTagMessage(player, getLocale("menu.tooBig").replace("%size%", size.toString())); return; }
-
+		
+		String title = replaceVars(player, menu.getString("title"));
+		
 		// Construct the menu
 		Inventory inventory = Bukkit.getServer().createInventory(player, size, title);
 		for(String curItem : items ){
 			String itemPath = "items.";
 			curMenu = menu;
-			Integer pos = Integer.parseInt(curItem) -1;
+			Integer pos = Integer.parseInt(curItem) - 1;
 
 			// Special Item check
 			if(curMenu.get(itemPath + curItem) instanceof String) {
 				String specialItem = (String) curMenu.get(itemPath + curItem);
 				Set<String> specialItemNames = (Set<String>) specialItems.getKeys(false);
 				if(specialItemNames.contains(specialItem)) {
-					curItem = specialItem; // Set current item name
-					curMenu = specialItems; // Set SpecialItem curMenu config to be used to get items
+					curItem = specialItem;
+					curMenu = specialItems;
 					itemPath = "";
 				} else { continue; } // Go back to start of loop, Special item was not found
 			}
@@ -168,7 +167,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			try { display 	 = replaceVars(player, curMenu.getString(itemPath + curItem + ".display")); } catch (Exception e) { }
 
 			// Command gathering
-			ArrayList<String> command = new ArrayList<String>(), lore = new ArrayList<String>();
+			ArrayList<String> command = new ArrayList<String>();
 			if(curMenu.get(itemPath + curItem + ".command") instanceof String) { // Catch single lined commands
 				command.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".command")));
 			} else {
@@ -177,6 +176,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				}
 			}
 
+			ArrayList<String> lore = new ArrayList<String>();
 			try {
 				if(curMenu.get(itemPath + curItem + ".lore") instanceof String) { 
 					lore.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".lore")));
