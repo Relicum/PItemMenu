@@ -165,9 +165,11 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			try { amount 	 = curMenu.getInt(itemPath + curItem + ".amount"); } catch (Exception e) { }
 			try { permission = curMenu.getString(itemPath + curItem + ".permission"); } catch (Exception e) { }
 			try { display 	 = replaceVars(player, curMenu.getString(itemPath + curItem + ".display")); } catch (Exception e) { }
+			try { if(curMenu.getBoolean(itemPath + curItem + ".hide")) { continue; } } catch (Exception e) { }
+			
 
 			// Command gathering
-			ArrayList<String> command = new ArrayList<String>();
+			ArrayList<String> command = new ArrayList<String>(), lore = new ArrayList<String>();
 			if(curMenu.get(itemPath + curItem + ".command") instanceof String) { // Catch single lined commands
 				command.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".command")));
 			} else {
@@ -176,7 +178,6 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				}
 			}
 
-			ArrayList<String> lore = new ArrayList<String>();
 			try {
 				if(curMenu.get(itemPath + curItem + ".lore") instanceof String) { 
 					lore.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".lore")));
@@ -216,8 +217,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		if (newlyCreated) {
 			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "itemmenu.yml").exists()){ 
 				saveResource("menus/itemmenu.yml", false); 
+				consoleTagMessage(getLocale("defaultGen"));
 			}
-			consoleTagMessage(getLocale("defaultGen"));
 		}
 
 		reloadConfig();
