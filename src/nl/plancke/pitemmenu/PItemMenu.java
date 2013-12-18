@@ -1,7 +1,7 @@
 /*
- PItemMenu v1.1.3 by Plancke
+ PItemMenu v1.1.4 by Plancke
  Feel free to use all of the code in here for your
- own projects but give me credit when you do.
+ own projects but please give me credit when you do.
  */
 
 package nl.plancke.pitemmenu;
