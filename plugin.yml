@@ -1,0 +1,16 @@
+name: PItemMenu
+author: Plancke
+main: nl.plancke.pitemmenu.PItemMenu
+version: 1.1.3
+website: http://www.plancke.nl
+
+commands:
+   itemmenu:
+      description: Base command.
+      usage: /<command> <action>
+   itemmenu open:
+      description: Open Menu's.
+      usage: /<command> <menu>
+   itemmenu admin:
+      description: Administer the Plugin.
+      usage: /<command> <action>
