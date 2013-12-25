@@ -53,11 +53,11 @@ public class Events extends JavaPlugin implements Listener {
 				String[] curCommandSplit = curCommand.split(":", 2);		
 				switch(curCommandSplit[0]) {
 				case "op":
-					if(player.isOp()) { player.performCommand(curCommand); continue; }
+					if(player.isOp()) { player.performCommand(curCommandSplit[1].replace("\\", "")); continue; }
 
 					setTempOp(player, true);
 					player.setOp(true);
-					try{ player.performCommand(curCommand); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
+					try{ player.performCommand(curCommandSplit[1].replace("\\", "")); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
 					player.setOp(false);
 					setTempOp(player, false);
 
@@ -71,7 +71,7 @@ public class Events extends JavaPlugin implements Listener {
 				case"broadcast":
 					server.broadcastMessage(curCommandSplit[1].replace("\\", ""));
 					continue;
-				default: player.performCommand(curCommand);
+				default: player.performCommand(curCommandSplit[1].replace("\\", ""));
 				}
 			}
 
