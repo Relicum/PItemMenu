@@ -9,6 +9,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static nl.plancke.pitemmenu.PItemMenu.*;
@@ -16,6 +17,16 @@ import static nl.plancke.pitemmenu.Functions.*;
 
 public class Events extends JavaPlugin implements Listener {
 
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		if(e.getPlayer().hasPermission("itemmenu.admin")) {
+			if(Updater.hasUpdate()) {
+				playerTagMessage(e.getPlayer(), "New file found: " + Updater.file());
+				playerTagMessage(e.getPlayer(), "Check BukkitDev for the update!");
+			}
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.HIGH)
 	public void InventoryCloseEvent(InventoryCloseEvent event) {
 		try{ players.remove(event.getPlayer()); } catch (Exception e) {}

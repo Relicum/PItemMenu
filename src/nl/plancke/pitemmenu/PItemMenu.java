@@ -44,7 +44,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 		Bukkit.getServer().getPluginManager().registerEvents(new Events(), this);
 
-		if(config.getBoolean("check-update")) { Updater.checkUpdate(); }
+		if(Updater.hasUpdate()) {
+			consoleTagMessage("New file found: " + Updater.file());
+			consoleTagMessage("Check BukkitDev for the update!");
+		}
 
 		consoleTagMessage("Enabled v" + version + "!");
 	}
@@ -148,7 +151,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			}
 
 			// Durability check in Type
-			String type = curMenu.get(itemPath + curItem + ".type").toString();
+			String type = curMenu.get(itemPath + curItem + ".type", "1").toString();
 			Integer itemID = 0;
 			short durability = 0; 
 			if(type.contains(":")) {
@@ -160,12 +163,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			}
 
 			// General Item data gathering
-			int amount = 1;
-			String display = null, permission = null;
-			try { amount 	 = curMenu.getInt(itemPath + curItem + ".amount"); } catch (Exception e) { }
-			try { permission = curMenu.getString(itemPath + curItem + ".permission"); } catch (Exception e) { }
-			try { display 	 = replaceVars(player, curMenu.getString(itemPath + curItem + ".display")); } catch (Exception e) { }
-			try { if(curMenu.getBoolean(itemPath + curItem + ".hide")) { continue; } } catch (Exception e) { }
+			int amount = curMenu.getInt(itemPath + curItem + ".amount", 1);
+			String permission = curMenu.getString(itemPath + curItem + ".permission", "");
+			String display = replaceVars(player, curMenu.getString(itemPath + curItem + ".display", null));
+			if(!permission.equals("")) { if(curMenu.getBoolean(itemPath + curItem + ".hide", false) && !player.hasPermission(permission)) { continue; } }
 			
 
 			// Command gathering
@@ -211,7 +212,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 		locale = YamlConfiguration.loadConfiguration(new File(dataFolder, "locale.yml"));
 		config = YamlConfiguration.loadConfiguration(new File(dataFolder, "config.yml"));
-		prefix = colorize(getConfig().getString("prefix"));
+		prefix = colorize(getConfig().getString("prefix", "&5[PItemMenu] &7"));
 		specialItem = YamlConfiguration.loadConfiguration(new File(dataFolder, "special-item.yml"));
 
 		if (newlyCreated) {

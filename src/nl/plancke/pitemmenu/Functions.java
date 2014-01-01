@@ -34,7 +34,7 @@ public class Functions extends JavaPlugin{
 		return newArrayList;
 	}
 	public static String getLocale(String path) {
-		return colorize(locale.getString(path));
+		return colorize(locale.getString(path, "Missing locale: " + path));
 	}
 
 	public static void logCommand(Player player, String command) {
