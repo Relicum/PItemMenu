@@ -82,7 +82,7 @@ public class Events extends JavaPlugin implements Listener {
 				case"broadcast":
 					server.broadcastMessage(curCommandSplit[1].replace("\\", ""));
 					continue;
-				default: player.performCommand(curCommandSplit[1].replace("\\", ""));
+				default: player.performCommand(curCommandSplit[0].replace("\\", ""));
 				}
 			}
 
