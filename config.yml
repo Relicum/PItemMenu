@@ -1,3 +1,4 @@
 prefix: '&5[PItemMenu] &7'
 log: true
+debug: false
 check-update: true

@@ -33,16 +33,22 @@ public class Functions extends JavaPlugin{
 		}
 		return newArrayList;
 	}
+	
 	public static String getLocale(String path) {
 		return colorize(locale.getString(path, "Missing locale: " + path));
 	}
 
+	public static void debugMessage(String message) {
+		if(!config.getBoolean("debug", false)) { return; }
+		consoleTagMessage("[DEBUG] " + message);
+	}
+	
 	public static void logCommand(Player player, String command) {
-		if(!PItemMenu.config.getBoolean("log")) { return; }
+		if(!config.getBoolean("log", true)) { return; }
 		String message;
 		String pName = player.getName();
 		message = getLocale("logMessage");
-		if(message == "") { return; }
+		if(message == null) { return; }
 		
 		message = message.replace("%player%", pName);
 		message = message.replace("%command%", command);
@@ -54,9 +60,7 @@ public class Functions extends JavaPlugin{
 		try {
 			File file = new File(dataFolder, "temp-opped.yml");
 			if (!file.exists()) { file.createNewFile(); }
-
 			FileConfiguration tempOps = YamlConfiguration.loadConfiguration(file);
-
 			List<String> ops = tempOps.getStringList("players");
 
 			if(state) {

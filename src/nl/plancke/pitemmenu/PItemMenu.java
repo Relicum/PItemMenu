@@ -45,8 +45,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		Bukkit.getServer().getPluginManager().registerEvents(new Events(), this);
 
 		if(Updater.hasUpdate()) {
-			consoleTagMessage("New file found: " + Updater.file());
-			consoleTagMessage("Check BukkitDev for the update!");
+			ArrayList<String> info = Updater.getInfo();
+			for(String line : info) {
+				consoleTagMessage(line);
+			}
 		}
 
 		consoleTagMessage("Enabled v" + version + "!");
@@ -133,6 +135,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		String title = replaceVars(player, menu.getString("title"));
 		
 		// Construct the menu
+		
+		debugMessage("Starting to build Menu.");
+		debugMessage("Size: [" + size + "]");
+		
 		Inventory inventory = Bukkit.getServer().createInventory(player, size, title);
 		for(String curItem : items ){
 			String itemPath = "items.";
@@ -164,24 +170,24 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 			// General Item data gathering
 			int amount = curMenu.getInt(itemPath + curItem + ".amount", 1);
-			String permission = curMenu.getString(itemPath + curItem + ".permission", "");
+			String permission = curMenu.getString(itemPath + curItem + ".permission", null);
 			String display = replaceVars(player, curMenu.getString(itemPath + curItem + ".display", null));
-			if(!permission.equals("")) { if(curMenu.getBoolean(itemPath + curItem + ".hide", false) && !player.hasPermission(permission)) { continue; } }
+			if(permission != null) { if(curMenu.getBoolean(itemPath + curItem + ".hide", false) && !player.hasPermission(permission)) { continue; } }
 			
 
 			// Command gathering
 			ArrayList<String> command = new ArrayList<String>(), lore = new ArrayList<String>();
 			if(curMenu.get(itemPath + curItem + ".command") instanceof String) { // Catch single lined commands
-				command.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".command")));
+				command.add(curMenu.getString(itemPath + curItem + ".command"));
 			} else {
 				for(String commandString : curMenu.getStringList(itemPath + curItem + ".command")) {
-					command.add(replaceVars(player, commandString));
+					command.add(commandString);
 				}
 			}
 
 			try {
 				if(curMenu.get(itemPath + curItem + ".lore") instanceof String) { 
-					lore.add(replaceVars(player, (String) curMenu.get(itemPath + curItem + ".lore")));
+					lore.add(replaceVars(player, curMenu.getString(itemPath + curItem + ".lore")));
 				} else {
 					for(String loreString : curMenu.getStringList(itemPath + curItem + ".lore")) {
 						lore.add(replaceVars(player, loreString));
@@ -194,6 +200,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			ItemStack item = new ItemStack(Material.getMaterial(itemID), amount, durability );
 			inventory.setItem(pos, setName(item, display, lore));
 
+			
+			debugMessage("Slot Number: [" + pos + "] - Commands: " + command + " - Permission: [" + permission + "]");
 			commandMenu.set(pos + ".command", command);
 			commandMenu.set(pos + ".permission", permission);
 		}
@@ -201,6 +209,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		player.closeInventory();
 		players.put(player , commandMenu); // Save commands linked to player object and position
 		player.openInventory(inventory); // Show Menu to player
+		
+		debugMessage("Menu built with no Errors. Woo!");
 	}
 
 	public void reloadConfigs(){ 

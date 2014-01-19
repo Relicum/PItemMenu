@@ -21,8 +21,7 @@ public class Events extends JavaPlugin implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		if(e.getPlayer().hasPermission("itemmenu.admin")) {
 			if(Updater.hasUpdate()) {
-				playerTagMessage(e.getPlayer(), "New file found: " + Updater.file());
-				playerTagMessage(e.getPlayer(), "Check BukkitDev for the update!");
+				
 			}
 		}
 	}
@@ -49,11 +48,12 @@ public class Events extends JavaPlugin implements Listener {
 
 			// permission check
 			String permission = (String) curPlayer.get(slot + ".permission"); 
-			if(permission != null && !player.hasPermission(permission)){ return; }
+			if(permission != null) { if(!player.hasPermission(permission)) { return; } }
 
 			// Perform Command
 			ArrayList<String> command = (ArrayList<String>) curPlayer.getStringList(slot + ".command");
 			if(command == null) { return; }
+			debugMessage("Slot Number: [" + slot + "] - Commands: " + curPlayer.getStringList(slot + ".command") + " - Permission: [" + curPlayer.getStringList(slot + ".permission") + "]");
 
 			for(String curCommand : command) {
 				curCommand = replaceVars(player, curCommand);
@@ -64,25 +64,24 @@ public class Events extends JavaPlugin implements Listener {
 				String[] curCommandSplit = curCommand.split(":", 2);		
 				switch(curCommandSplit[0]) {
 				case "op":
-					if(player.isOp()) { player.performCommand(curCommandSplit[1].replace("\\", "")); continue; }
+					if(player.isOp()) { player.performCommand(curCommandSplit[1]); continue; } // Execute when player is alreaady OP
 
 					setTempOp(player, true);
 					player.setOp(true);
-					try{ player.performCommand(curCommandSplit[1].replace("\\", "")); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
+					try{ player.performCommand(curCommandSplit[1]); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
 					player.setOp(false);
 					setTempOp(player, false);
-
-					continue;
+					break;
 				case "console":
-					server.dispatchCommand(console, curCommandSplit[1].replace("\\", ""));
-					continue;
+					server.dispatchCommand(console, curCommandSplit[1]); 
+					break;
 				case"open":
-					player.performCommand("itemmenu open " + curCommandSplit[1].replace("\\", ""));
-					continue;
+					player.performCommand("itemmenu open " + curCommandSplit[1]); 
+					break;
 				case"broadcast":
-					server.broadcastMessage(curCommandSplit[1].replace("\\", ""));
-					continue;
-				default: player.performCommand(curCommandSplit[0].replace("\\", ""));
+					server.broadcastMessage(curCommandSplit[1]); 
+					break;
+				default: player.performCommand(curCommandSplit[0]);
 				}
 			}
 

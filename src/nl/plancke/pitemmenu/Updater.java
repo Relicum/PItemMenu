@@ -2,6 +2,7 @@ package nl.plancke.pitemmenu;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,15 +48,21 @@ public class Updater {
 		}
 	}
 	
-	public static String file() {
+	public static ArrayList<String> getInfo() {
 		try {
+			ArrayList<String> info = new ArrayList<String>();
 			jsonFeed = getContent("https://api.curseforge.com/servermods/files?projectIds=" + projectId);
 			JSONArray array = (JSONArray) JSONValue.parse(jsonFeed);
 			JSONObject latestFile = (JSONObject) JSONValue.parse(array.get(array.size() -1).toString());
-			return latestFile.get("name").toString();
+			
+			info.add("New File found: " + latestFile.get("name").toString());
+			info.add(latestFile.get("downloadUrl").toString());
+			info.add("You can also check the BukkitDev Page:");
+			info.add("http://dev.bukkit.org/bukkit-plugins/pitemmenu/");
+			return info;
 		} catch (Exception e) { 
 			e.printStackTrace(); 
 		}
-		return "null";
+		return new ArrayList<String>();
 	}
 }
