@@ -2,6 +2,7 @@ package nl.plancke.pitemmenu;
 
 import java.util.ArrayList;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static nl.plancke.pitemmenu.PItemMenu.*;
@@ -21,7 +23,7 @@ public class Events extends JavaPlugin implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		if(e.getPlayer().hasPermission("itemmenu.admin")) {
 			if(Updater.hasUpdate()) {
-				
+				tagMessage("PItemMenu is outdated!", e.getPlayer());
 			}
 		}
 	}
@@ -39,23 +41,33 @@ public class Events extends JavaPlugin implements Listener {
 		try{
 			event.setResult(org.bukkit.event.Event.Result.DENY);
 			event.setCancelled(true);
+			
+			event.setCursor(new ItemStack(Material.AIR));
+			player.updateInventory();
 
 			// get clicked item
 			Integer slot = event.getRawSlot();
 
 			// get player menu
-			FileConfiguration curPlayer = players.get(player);
+			FileConfiguration playerMenu = players.get(player);
+			
+			//Check if slot is set
+			if(!playerMenu.getConfigurationSection("items").getKeys(false).contains(slot + "")) { return; }
 
 			// permission check
-			String permission = (String) curPlayer.get(slot + ".permission"); 
-			if(permission != null) { if(!player.hasPermission(permission)) { return; } }
+			String permission = playerMenu.getString("items." + slot + ".permission"); 
+			if(permission != null) { 
+				debugMessage("Checking if ["+ player.getName() + "] has permission [" + permission + "]"); 
+				if(!player.hasPermission(permission)) { return; } 
+			}
 
 			// Perform Command
-			ArrayList<String> command = (ArrayList<String>) curPlayer.getStringList(slot + ".command");
-			if(command == null) { return; }
-			debugMessage("Slot Number: [" + slot + "] - Commands: " + curPlayer.getStringList(slot + ".command") + " - Permission: [" + curPlayer.getStringList(slot + ".permission") + "]");
+			ArrayList<String> commands = (ArrayList<String>) playerMenu.getStringList("items." + slot + ".command");
+			if(commands == null) { return; }
+			debugMessage("Slot Number: [" + slot + "] - Commands: " + commands + " - Permission: [" + playerMenu.getString(slot + ".permission") + "]");
 
-			for(String curCommand : command) {
+			for(String curCommand : commands) {
+				debugMessage("Running " + curCommand +" as [" + player.getName() + "]");
 				curCommand = replaceVars(player, curCommand);
 
 				if(curCommand.equals(getLocale("exitCommand"))) { player.closeInventory(); return; }
@@ -84,6 +96,9 @@ public class Events extends JavaPlugin implements Listener {
 				default: player.performCommand(curCommandSplit[0]);
 				}
 			}
+			
+			if(playerMenu.getBoolean("closeonclick", false)) { player.closeInventory(); }
+			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.OpenMenu(player, playerMenu.getString("name")); }
 
 		} catch (Exception e) { e.printStackTrace(); player.closeInventory(); }
 	}

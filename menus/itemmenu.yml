@@ -1,7 +1,7 @@
-title: '&k||| &rPItemMenu Info &r&k|||'
+title: '\u2665&k||| &rPItemMenu Info &r&k|||'
+closeonclick: true
 items:
   1: Creator
-  2: Documenter
   7: 
     type: '35:1'
     display: '&2Reload'

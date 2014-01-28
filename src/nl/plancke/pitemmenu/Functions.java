@@ -3,6 +3,8 @@ package nl.plancke.pitemmenu;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.util.org.apache.commons.lang3.StringEscapeUtils;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -15,16 +17,21 @@ import static nl.plancke.pitemmenu.PItemMenu.*;
 
 public class Functions extends JavaPlugin{    
 
-	public static void consoleTagMessage(String msg) {
-		if(msg == null) { return; }
-		console.sendMessage(prefix + msg);
+	public static void tagMessage(String msg) {
+		tagMessage(msg, "console");
 	}
-	public static void playerTagMessage(Player player, String msg) {
+	
+	public static void tagMessage(String msg, Object receiver) {
 		if(msg == null) { return; }
-		player.sendMessage(prefix + msg);
+		if(receiver instanceof Player){
+			((Player) receiver).sendMessage(prefix + msg);
+		} else {
+			console.sendMessage(prefix + msg);
+		}
 	}
+
 	public static String colorize(String string) { 
-		return string.replaceAll("(&([a-fk-or0-9]))", "\u00A7$2"); 
+		return addUnicode(string.replaceAll("(&([a-fk-or0-9]))", "\u00A7$2")); 
 	}
 	public static ArrayList<String> colorizeArray (ArrayList<String> arrayList) {
 		ArrayList<String> newArrayList = new ArrayList<String>();
@@ -40,7 +47,7 @@ public class Functions extends JavaPlugin{
 
 	public static void debugMessage(String message) {
 		if(!config.getBoolean("debug", false)) { return; }
-		consoleTagMessage("[DEBUG] " + message);
+		tagMessage("[DEBUG] " + message);
 	}
 	
 	public static void logCommand(Player player, String command) {
@@ -53,7 +60,7 @@ public class Functions extends JavaPlugin{
 		message = message.replace("%player%", pName);
 		message = message.replace("%command%", command);
 
-		consoleTagMessage(message);
+		tagMessage(message);
 	}
 
 	public static void setTempOp(Player player, Boolean state) {
@@ -87,15 +94,19 @@ public class Functions extends JavaPlugin{
 	
 	public static boolean showUsage(CommandSender sender) {
 		if(!(sender instanceof Player)){ // If Console fails send admin usage.
-			consoleTagMessage(getLocale("usage.admin")); 
+			tagMessage(getLocale("usage.admin")); 
 		}  else {
 			Player player = (Player) sender;
 			if(sender.hasPermission("itemmenu.admin")) {		
-				playerTagMessage(player, getLocale("usage.admin")); // If Player has the admin permission show admin usage.
+				tagMessage(getLocale("usage.admin"), player); // If Player has the admin permission show admin usage.
 			} else {
-				playerTagMessage(player, getLocale("usage.normal")); // If Player fails send usage.
+				tagMessage(getLocale("usage.normal"), player); // If Player fails send usage.
 			}
 		}
 		return true;
+	}
+	
+	public static String addUnicode(String input) {
+		return StringEscapeUtils.unescapeJava(input);
 	}
 }

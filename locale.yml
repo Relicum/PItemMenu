@@ -1,7 +1,6 @@
 # Console Messages
 logMessage: "%player% has executed the command %command%."
 logMessage-op: "%player% has executed the command %command% as OP."
-defaultGen: "Default files generated."
 reload: "Reloaded."
 onlyPlayers: "Itemmenu's can only be opened by players."
 opFix: "Player %player% was opped, de-opping now!"

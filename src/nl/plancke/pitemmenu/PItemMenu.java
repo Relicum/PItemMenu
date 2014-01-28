@@ -29,6 +29,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 	public static ConsoleCommandSender console;
 	public static FileConfiguration config, locale, specialItem;
 	public static Map<Player, FileConfiguration> players = new HashMap<Player, FileConfiguration>();
+	public static Map<String, Inventory> inventories = new HashMap<String, Inventory>();
+	public static Map<String, FileConfiguration> menus = new HashMap<String, FileConfiguration>();
 	public static File dataFolder;
 	public static String version;
 
@@ -43,19 +45,21 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		checkOps();
 
 		Bukkit.getServer().getPluginManager().registerEvents(new Events(), this);
-
+		
+		
+		debugMessage("Checking for updates");
 		if(Updater.hasUpdate()) {
 			ArrayList<String> info = Updater.getInfo();
 			for(String line : info) {
-				consoleTagMessage(line);
+				tagMessage(line);
 			}
-		}
+		} else { debugMessage("No updates found"); }
 
-		consoleTagMessage("Enabled v" + version + "!");
+		tagMessage("Enabled v" + version + "!");
 	}
 	@Override
 	public void onDisable() {
-		consoleTagMessage("Disabled v" + version + "!");
+		tagMessage("Disabled v" + version + "!");
 	}  
 
 	@Override
@@ -69,10 +73,10 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 				if(args[1].equalsIgnoreCase("reload") && (sender.hasPermission("itemmenu.admin.reload") || sender.isOp())) {
 					reloadConfigs();
-					consoleTagMessage(getLocale("reload")); 
+					tagMessage(getLocale("reload")); 
 					if(sender instanceof Player) {
 						Player Player = (Player) sender;
-						playerTagMessage(Player, getLocale("reload")); 
+						tagMessage(getLocale("reload"), Player); 
 					}
 				}
 				return true;
@@ -80,7 +84,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 			if(args[0].equalsIgnoreCase("open")) {
 				if(!(sender instanceof Player)){ // Console Check
-					consoleTagMessage(getLocale("onlyPlayers")); 
+					tagMessage(getLocale("onlyPlayers")); 
 					return true;
 				}
 
@@ -90,15 +94,9 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 				String name = args[1];
 				if(sender.isOp() || sender.hasPermission("itemmenu.open." + name)) { // Permission Check					
-					File menuFile = new File(dataFolder + File.separator + "menus" + File.separator + name + ".yml");
-					if(!menuFile.exists()) { // Check if the menu exists
-						playerTagMessage(player, getLocale("menu.notExist").replace("%menu%", name));
-						return true;
-					} 
-					OpenMenu(player, menuFile);
-
+					OpenMenu(player, name);
 				} else {
-					playerTagMessage(player, getLocale("menu.notPerms").replace("%menu%", name));
+					tagMessage(getLocale("menu.notPerms").replace("%menu%", name), player);
 				}
 				return true;
 			}
@@ -107,7 +105,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		return false; 
 	}
 
-	private ItemStack setName(ItemStack itemStack, String name, ArrayList<String> lore) {
+	private static ItemStack setName(ItemStack itemStack, String name, ArrayList<String> lore) {
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		if (name != null)
 			itemMeta.setDisplayName(colorize(name));
@@ -117,25 +115,36 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		return itemStack;
 	}
 
-	public void OpenMenu(Player player, File menuFile) { 
+	public static void OpenMenu(Player player, String menuName) {
+		File menuFile = new File(dataFolder + File.separator + "menus" + File.separator + menuName + ".yml");
+		if(!menuFile.exists()) { // Check if the menu exists
+			tagMessage(getLocale("menu.notExist").replace("%menu%", menuName), player);
+			return;
+		} 
+		
+		if(config.getBoolean("useCache", true)) {
+			if(inventories.containsKey(menuName) && menus.containsKey(menuName)) {
+				debugMessage("Using cached menu [" + menuName + "]");
+				player.openInventory(inventories.get(menuName));
+				players.put(player, menus.get(menuName));
+				return;
+			}
+			debugMessage("No cache found, building menu [" + menuName + "]");
+		}
+		
 		FileConfiguration specialItems = YamlConfiguration.loadConfiguration(new File(dataFolder + "//special-items.yml"));
 		FileConfiguration curMenu, menu = YamlConfiguration.loadConfiguration(menuFile); // Load Menu from Path
-		FileConfiguration commandMenu = new YamlConfiguration();
+		FileConfiguration playerMenu = new YamlConfiguration();
 		Set<String> items = menu.getConfigurationSection("items").getKeys(false);
-		
+
 		Integer maxSlot = 0;
-		for(String slot : items ){ 
-			if(Integer.parseInt(slot) > maxSlot) {
-				maxSlot = Integer.parseInt(slot);
-			}
-		}
+		for(String slot : items ){ if(Integer.parseInt(slot) > maxSlot) { maxSlot = Integer.parseInt(slot); } }
 		Integer size = (int) ((maxSlot - 1) / 9 + 1) * 9;
-		if(size > 54) { playerTagMessage(player, getLocale("menu.tooBig").replace("%size%", size.toString())); return; }
+		if(size > 54) { tagMessage(getLocale("menu.tooBig").replace("%size%", size.toString()), player); return; }
 		
 		String title = replaceVars(player, menu.getString("title"));
 		
 		// Construct the menu
-		
 		debugMessage("Starting to build Menu.");
 		debugMessage("Size: [" + size + "]");
 		
@@ -202,18 +211,32 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 			
 			debugMessage("Slot Number: [" + pos + "] - Commands: " + command + " - Permission: [" + permission + "]");
-			commandMenu.set(pos + ".command", command);
-			commandMenu.set(pos + ".permission", permission);
+			playerMenu.set("items." + pos + ".command", command);
+			playerMenu.set("items." + pos + ".permission", permission);
 		}
-
+		
+		playerMenu.set("name", menuName);
+		for(String key : menu.getKeys(false)) {
+			if(key.equals("items")) { continue; }
+			debugMessage("Adding value [" + key + ":" + menu.getString(key) + "] to the menu!");
+			playerMenu.set(key, menu.get(key));
+		}
+		
 		player.closeInventory();
-		players.put(player , commandMenu); // Save commands linked to player object and position
+		players.put(player , playerMenu); // Save commands linked to player object and position
+		
+		inventories.put(menuName, inventory); // Cache inventory
+		menus.put(menuName, playerMenu);
+		
 		player.openInventory(inventory); // Show Menu to player
 		
 		debugMessage("Menu built with no Errors. Woo!");
 	}
 
 	public void reloadConfigs(){ 
+		inventories.clear();
+		menus.clear();
+		
 		Boolean newlyCreated = false;
 
 		if (!new File(dataFolder, "locale.yml").exists()){ saveResource("locale.yml", false); newlyCreated = true; }        
@@ -228,7 +251,6 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		if (newlyCreated) {
 			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "itemmenu.yml").exists()){ 
 				saveResource("menus/itemmenu.yml", false); 
-				consoleTagMessage(getLocale("defaultGen"));
 			}
 		}
 
@@ -239,7 +261,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		FileConfiguration tempOps = YamlConfiguration.loadConfiguration(new File(dataFolder, "temp-opped.yml"));
 		for (String playerName : tempOps.getStringList("players")){
 			Player player = (Player) server.getOfflinePlayer(playerName);
-			consoleTagMessage(getLocale("opFix").replace("%player%", playerName));
+			tagMessage(getLocale("opFix").replace("%player%", playerName));
 			player.setOp(false);
 			setTempOp(player, false);
 		}
