@@ -1,7 +1,7 @@
 name: PItemMenu
 author: Plancke
 main: nl.plancke.pitemmenu.PItemMenu
-version: 1.2.1
+version: 1.2.2
 website: http://www.plancke.nl
 
 commands:

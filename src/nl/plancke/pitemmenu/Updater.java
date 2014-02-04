@@ -32,7 +32,7 @@ public class Updater {
 		}
 		return content;  
 	}
-
+	
 	public static boolean hasUpdate() {
 		try {
 			if(config.getBoolean("check-update", true)) {

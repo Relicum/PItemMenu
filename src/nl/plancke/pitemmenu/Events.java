@@ -17,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import static nl.plancke.pitemmenu.PItemMenu.*;
 import static nl.plancke.pitemmenu.Functions.*;
 
-public class Events extends JavaPlugin implements Listener {
+public class Events implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
@@ -76,7 +76,7 @@ public class Events extends JavaPlugin implements Listener {
 				String[] curCommandSplit = curCommand.split(":", 2);		
 				switch(curCommandSplit[0]) {
 				case "op":
-					if(player.isOp()) { player.performCommand(curCommandSplit[1]); continue; } // Execute when player is alreaady OP
+					if(player.isOp()) { player.performCommand(curCommandSplit[1]); break; } // Execute when player is alreaady OP
 
 					setTempOp(player, true);
 					player.setOp(true);

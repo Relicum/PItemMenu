@@ -1,5 +1,5 @@
 /*
- PItemMenu v1.1.4 by Plancke
+ PItemMenu v1.2.2 by Plancke
  Feel free to use all of the code in here for your
  own projects but please give me credit when you do.
  */
@@ -44,7 +44,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		reloadConfigs();
 		checkOps();
 
-		Bukkit.getServer().getPluginManager().registerEvents(new Events(), this);
+		server.getPluginManager().registerEvents(new Events(), this);
 		
 		
 		debugMessage("Checking for updates");
