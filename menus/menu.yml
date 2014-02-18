@@ -15,7 +15,7 @@ items:
     type: '35:13'
     display: '&2Open'
     lore: '&aOpen this menu again'
-    command: 'open:itemmenu'
+    command: 'open:menu'
   9: 
     type: '35:14'
     display: '&4Exit'

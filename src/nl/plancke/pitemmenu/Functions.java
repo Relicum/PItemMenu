@@ -97,7 +97,7 @@ public class Functions extends JavaPlugin{
 			tagMessage(getLocale("usage.admin")); 
 		}  else {
 			Player player = (Player) sender;
-			if(sender.hasPermission("itemmenu.admin")) {		
+			if(sender.hasPermission("menu.admin")) {		
 				tagMessage(getLocale("usage.admin"), player); // If Player has the admin permission show admin usage.
 			} else {
 				tagMessage(getLocale("usage.normal"), player); // If Player fails send usage.

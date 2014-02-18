@@ -5,12 +5,12 @@ version: 1.2.2
 website: http://www.plancke.nl
 
 commands:
-   itemmenu:
+   menu:
       description: Base command.
       usage: /<command> <action>
-   itemmenu open:
+   menu open:
       description: Open Menu's.
       usage: /<command> <menu>
-   itemmenu admin:
+   menu admin:
       description: Administer the Plugin.
       usage: /<command> <action>

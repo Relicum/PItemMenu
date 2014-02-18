@@ -12,7 +12,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import static nl.plancke.pitemmenu.PItemMenu.*;
 import static nl.plancke.pitemmenu.Functions.*;
@@ -21,7 +20,7 @@ public class Events implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		if(e.getPlayer().hasPermission("itemmenu.admin")) {
+		if(e.getPlayer().hasPermission("menu.admin")) {
 			if(Updater.hasUpdate()) {
 				tagMessage("PItemMenu is outdated!", e.getPlayer());
 			}
@@ -88,7 +87,7 @@ public class Events implements Listener {
 					server.dispatchCommand(console, curCommandSplit[1]); 
 					break;
 				case"open":
-					player.performCommand("itemmenu open " + curCommandSplit[1]); 
+					player.performCommand("menu open " + curCommandSplit[1]); 
 					break;
 				case"broadcast":
 					server.broadcastMessage(curCommandSplit[1]); 

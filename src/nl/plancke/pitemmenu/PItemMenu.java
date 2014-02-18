@@ -64,14 +64,14 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		if(cmd.getName().equalsIgnoreCase("itemmenu")){
+		if(cmd.getName().equalsIgnoreCase("menu")){
 
 			if(args.length == 0) { return showUsage(sender); }
 
 			if(args[0].equalsIgnoreCase("admin")) {
 				if(args.length == 1) { return showUsage(sender); } 
 
-				if(args[1].equalsIgnoreCase("reload") && (sender.hasPermission("itemmenu.admin.reload") || sender.isOp())) {
+				if(args[1].equalsIgnoreCase("reload") && (sender.hasPermission("menu.admin.reload") || sender.isOp())) {
 					reloadConfigs();
 					tagMessage(getLocale("reload")); 
 					if(sender instanceof Player) {
@@ -93,7 +93,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				Player player = (Player) sender;
 
 				String name = args[1];
-				if(sender.isOp() || sender.hasPermission("itemmenu.open." + name)) { // Permission Check					
+				if(sender.isOp() || sender.hasPermission("menu.open." + name)) { // Permission Check					
 					OpenMenu(player, name);
 				} else {
 					tagMessage(getLocale("menu.notPerms").replace("%menu%", name), player);
@@ -249,8 +249,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		specialItem = YamlConfiguration.loadConfiguration(new File(dataFolder, "special-item.yml"));
 
 		if (newlyCreated) {
-			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "itemmenu.yml").exists()){ 
-				saveResource("menus/itemmenu.yml", false); 
+			if (!new File(dataFolder, File.pathSeparator + "menus" + File.pathSeparator + "menu.yml").exists()){ 
+				saveResource("menus/menu.yml", false); 
 			}
 		}
 
