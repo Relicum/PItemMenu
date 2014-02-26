@@ -23,10 +23,13 @@ public class Functions extends JavaPlugin{
 	
 	public static void tagMessage(String msg, Object receiver) {
 		if(msg == null) { return; }
-		if(receiver instanceof Player){
-			((Player) receiver).sendMessage(prefix + msg);
-		} else {
-			console.sendMessage(prefix + msg);
+		
+		for(String line : msg.split("\n")) {
+			if(receiver instanceof Player){
+				((Player) receiver).sendMessage(prefix + line);
+			} else {
+				console.sendMessage(prefix + line);
+			}
 		}
 	}
 

@@ -12,6 +12,9 @@ import java.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -21,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.*;
 
+import net.milkbowl.vault.economy.Economy;
 import static nl.plancke.pitemmenu.Functions.*;
 
 public final class PItemMenu extends JavaPlugin implements Listener {
@@ -34,6 +38,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 	public static File dataFolder;
 	public static String version;
 
+	public static Economy econ = null;
+
 	@Override
 	public void onEnable() {
 		dataFolder = this.getDataFolder();
@@ -45,8 +51,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		checkOps();
 
 		server.getPluginManager().registerEvents(new Events(), this);
-		
-		
+
+
 		debugMessage("Checking for updates");
 		if(Updater.hasUpdate()) {
 			ArrayList<String> info = Updater.getInfo();
@@ -55,12 +61,36 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			}
 		} else { debugMessage("No updates found"); }
 
+		setupVault(getServer().getPluginManager());
+
 		tagMessage("Enabled v" + version + "!");
 	}
 	@Override
 	public void onDisable() {
 		tagMessage("Disabled v" + version + "!");
 	}  
+
+	private void setupVault(PluginManager pm) {
+		Plugin vault =  pm.getPlugin("Vault");
+		if (vault != null && vault instanceof net.milkbowl.vault.Vault) {
+			debugMessage("Loaded Vault v" + vault.getDescription().getVersion());
+			setupEconomy();
+		}
+	}
+
+	private boolean setupEconomy(){
+		if (server.getPluginManager().getPlugin("Vault") == null) { return false; }
+		debugMessage("Trying to enable economy...");
+		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+		if (economyProvider != null) {
+			econ = economyProvider.getProvider();
+		} else {
+			debugMessage("Economy Failed!");
+			return false;
+		}
+		debugMessage("Economy enabled!");
+		return (econ != null);
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
@@ -121,7 +151,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			tagMessage(getLocale("menu.notExist").replace("%menu%", menuName), player);
 			return;
 		} 
-		
+
 		if(config.getBoolean("useCache", true)) {
 			if(inventories.containsKey(menuName) && menus.containsKey(menuName)) {
 				debugMessage("Using cached menu [" + menuName + "]");
@@ -131,7 +161,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			}
 			debugMessage("No cache found, building menu [" + menuName + "]");
 		}
-		
+
 		FileConfiguration specialItems = YamlConfiguration.loadConfiguration(new File(dataFolder + "//special-items.yml"));
 		FileConfiguration curMenu, menu = YamlConfiguration.loadConfiguration(menuFile); // Load Menu from Path
 		FileConfiguration playerMenu = new YamlConfiguration();
@@ -141,13 +171,53 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		for(String slot : items ){ if(Integer.parseInt(slot) > maxSlot) { maxSlot = Integer.parseInt(slot); } }
 		Integer size = (int) ((maxSlot - 1) / 9 + 1) * 9;
 		if(size > 54) { tagMessage(getLocale("menu.tooBig").replace("%size%", size.toString()), player); return; }
-		
+
 		String title = replaceVars(player, menu.getString("title"));
-		
+
+		String itemfee = menu.getString("itemfee", null);
+		if(!player.hasPermission("menu.itemfee.bypass." + menuName)) {
+			if(itemfee != null) {
+				Material feemat = Material.getMaterial(Integer.parseInt(itemfee.split(",")[0].split(":")[0]));
+				Short feedur = 0; try{ feedur = Short.parseShort(itemfee.split(",")[0].split(":")[1]);}catch(Exception e){ feedur = 0; }
+				Integer feeamount= Integer.parseInt(itemfee.split(",")[1]);
+
+				ItemStack item = new ItemStack(feemat, feeamount, feedur);
+				debugMessage("Itemfee found: " + item.toString());
+
+				if(player.getInventory().containsAtLeast(item, feeamount)) {
+					player.getInventory().removeItem(item);
+					debugMessage("Menu access granted!");
+				} else {
+					tagMessage(getLocale("fee.item").replaceAll("%item%", item.getType().name()).replaceAll("%amount%", Integer.toString(feeamount)), player);
+					return;
+				}
+			}
+		}
+
+		Double moneyfee = menu.getDouble("moneyfee", 0);
+		if(!player.hasPermission("menu.moneyfee.bypass." + menuName)) {
+			if(moneyfee != 0) {
+				debugMessage("Moneyfee found: " + moneyfee);
+				if(econ.getBalance(player.getName()) >= moneyfee) {
+					if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
+						debugMessage("Player was granted access to the menu!");
+					} else {
+						debugMessage("Something went wrong while removong funds for " + player.getName());
+						return;
+					}
+				} else {
+					tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
+					return;
+				}
+			}
+		}
+
+		debugMessage("Player was granted access to the menu!");
+
 		// Construct the menu
 		debugMessage("Starting to build Menu.");
 		debugMessage("Size: [" + size + "]");
-		
+
 		Inventory inventory = Bukkit.getServer().createInventory(player, size, title);
 		for(String curItem : items ){
 			String itemPath = "items.";
@@ -182,7 +252,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			String permission = curMenu.getString(itemPath + curItem + ".permission", null);
 			String display = replaceVars(player, curMenu.getString(itemPath + curItem + ".display", null));
 			if(permission != null) { if(curMenu.getBoolean(itemPath + curItem + ".hide", false) && !player.hasPermission(permission)) { continue; } }
-			
+			itemfee = curMenu.getString(itemPath + curItem + ".itemfee", null);
+			moneyfee = curMenu.getDouble(itemPath + curItem + ".moneyfee", 0);
 
 			// Command gathering
 			ArrayList<String> command = new ArrayList<String>(), lore = new ArrayList<String>();
@@ -209,34 +280,36 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 			ItemStack item = new ItemStack(Material.getMaterial(itemID), amount, durability );
 			inventory.setItem(pos, setName(item, display, lore));
 
-			
-			debugMessage("Slot Number: [" + pos + "] - Commands: " + command + " - Permission: [" + permission + "]");
+
+			debugMessage("Slot Number: [" + pos + "] - Commands: " + command + " - Permission: [" + permission + "]" + " - Fees: [Itemfee: " + itemfee + " - Moneyfee: " + moneyfee + "]");
 			playerMenu.set("items." + pos + ".command", command);
 			playerMenu.set("items." + pos + ".permission", permission);
+			playerMenu.set("items." + pos + ".itemfee", itemfee);
+			playerMenu.set("items." + pos + ".moneyfee", moneyfee);
 		}
-		
+
 		playerMenu.set("name", menuName);
 		for(String key : menu.getKeys(false)) {
 			if(key.equals("items")) { continue; }
 			debugMessage("Adding value [" + key + ":" + menu.getString(key) + "] to the menu!");
 			playerMenu.set(key, menu.get(key));
 		}
-		
+
 		player.closeInventory();
 		players.put(player , playerMenu); // Save commands linked to player object and position
-		
+
 		inventories.put(menuName, inventory); // Cache inventory
 		menus.put(menuName, playerMenu);
-		
+
 		player.openInventory(inventory); // Show Menu to player
-		
+
 		debugMessage("Menu built with no Errors. Woo!");
 	}
 
 	public void reloadConfigs(){ 
 		inventories.clear();
 		menus.clear();
-		
+
 		Boolean newlyCreated = false;
 
 		if (!new File(dataFolder, "locale.yml").exists()){ saveResource("locale.yml", false); newlyCreated = true; }        

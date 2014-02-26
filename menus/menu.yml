@@ -8,7 +8,7 @@ items:
     lore: '&aReload the plugin'
     command: 
     - 'console:itemmenu admin reload'
-    - 'broadcast:%prefix% Reloaded!'
+    - 'broadcast:%prefix%Reloaded!'
     permission: 'admin'
     hide: true
   8: 
@@ -19,4 +19,4 @@ items:
   9: 
     type: '35:14'
     display: '&4Exit'
-    command: 'closepitemmenu'
+    command: 'closemenu'

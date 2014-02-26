@@ -26,7 +26,7 @@ public class Events implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void InventoryCloseEvent(InventoryCloseEvent event) {
 		try{ players.remove(event.getPlayer()); } catch (Exception e) {}
@@ -40,7 +40,7 @@ public class Events implements Listener {
 		try{
 			event.setResult(org.bukkit.event.Event.Result.DENY);
 			event.setCancelled(true);
-			
+
 			event.setCursor(new ItemStack(Material.AIR));
 			player.updateInventory();
 
@@ -49,9 +49,48 @@ public class Events implements Listener {
 
 			// get player menu
 			FileConfiguration playerMenu = players.get(player);
-			
+
 			//Check if slot is set
 			if(!playerMenu.getConfigurationSection("items").getKeys(false).contains(slot + "")) { return; }
+
+			//Check for fees
+			String itemfee = playerMenu.getString("items." + slot + ".itemfee", null);
+			if(itemfee != null) {
+				Material feemat = Material.getMaterial(Integer.parseInt(itemfee.split(",")[0].split(":")[0]));
+				Short feedur = 0; try{ feedur = Short.parseShort(itemfee.split(",")[0].split(":")[1]);}catch(Exception e){ feedur = 0; }
+				Integer feeamount= Integer.parseInt(itemfee.split(",")[1]);
+
+				ItemStack item = new ItemStack(feemat, feeamount, feedur);
+				debugMessage("Itemfee found: " + item.toString());
+
+				if(!player.hasPermission("menu.itemfee.bypass." + playerMenu.getString("name") + ".slot." + slot)) {
+					if(player.getInventory().containsAtLeast(item, feeamount)) {
+						player.getInventory().removeItem(item);
+						debugMessage("Item access granted!");
+					} else {
+						tagMessage(getLocale("fee.item").replaceAll("%item%", item.getType().name()).replaceAll("%amount%", feeamount + ""), player);
+						return;
+					}
+				}
+			}
+
+			Double moneyfee = playerMenu.getDouble("items." + slot + ".moneyfee", 0);
+			if(!player.hasPermission("menu.moneyfee.bypass." + playerMenu.getString("name") + ".slot." + slot)) {
+				if(moneyfee != 0) {
+					debugMessage("Moneyfee found: " + moneyfee);
+					if(econ.getBalance(player.getName()) >= moneyfee) {
+						if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
+							debugMessage("Player was granted access to the menu!");
+						} else {
+							debugMessage("Something went wrong while removong funds for " + player.getName());
+							return;
+						}
+					} else {
+						tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
+						return;
+					}
+				}
+			}
 
 			// permission check
 			String permission = playerMenu.getString("items." + slot + ".permission"); 
@@ -63,7 +102,11 @@ public class Events implements Listener {
 			// Perform Command
 			ArrayList<String> commands = (ArrayList<String>) playerMenu.getStringList("items." + slot + ".command");
 			if(commands == null) { return; }
-			debugMessage("Slot Number: [" + slot + "] - Commands: " + commands + " - Permission: [" + playerMenu.getString(slot + ".permission") + "]");
+
+			debugMessage("Slot Number: [" + slot + "]" +
+					"\nCommands: " + commands +
+					"\nPermission: [" + playerMenu.getString(slot + ".permission") + "]" +
+					"\nFees: [Itemfee: " + itemfee + " - Moneyfee: " + moneyfee + "]");
 
 			for(String curCommand : commands) {
 				debugMessage("Running " + curCommand +" as [" + player.getName() + "]");
@@ -95,7 +138,7 @@ public class Events implements Listener {
 				default: player.performCommand(curCommandSplit[0]);
 				}
 			}
-			
+
 			if(playerMenu.getBoolean("closeonclick", false)) { player.closeInventory(); }
 			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.OpenMenu(player, playerMenu.getString("name")); }
 

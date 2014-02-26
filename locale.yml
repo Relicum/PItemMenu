@@ -4,8 +4,12 @@ logMessage-op: "%player% has executed the command %command% as OP."
 reload: "Reloaded."
 onlyPlayers: "Itemmenu's can only be opened by players."
 opFix: "Player %player% was opped, de-opping now!"
-exitCommand: "closepitemmenu"
+exitCommand: "closemenu"
 
+fee:
+  item: "You do not have enough items to open this menu!\nRequired items: %amount% %item%"
+  money: "You do not have enough money to open this menu!\nRequired funds: %amount%"
+  
 menu:
   notExist: "This menu does not exist (%menu%)."
   notPerms: "You do not have permission to open this menu (%menu%)!"
@@ -13,5 +17,5 @@ menu:
   tooBig: "This menu is too big, trying to set size to %size%."
   
 usage:
-  normal: "Usage: /itemmenu open <menu>"
-  admin: "Usage: /itemmenu <open/admin> <menu/action>"
+  normal: "Usage: /menu open <menu>"
+  admin: "Usage: /menu <open/admin> <menu/action>"
