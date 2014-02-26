@@ -23,7 +23,7 @@ public class Functions extends JavaPlugin{
 	
 	public static void tagMessage(String msg, Object receiver) {
 		if(msg == null) { return; }
-		
+		if(!config.getBoolean("log", true)) { return; }
 		for(String line : msg.split("\n")) {
 			if(receiver instanceof Player){
 				((Player) receiver).sendMessage(prefix + line);
@@ -50,7 +50,11 @@ public class Functions extends JavaPlugin{
 
 	public static void debugMessage(String message) {
 		if(!config.getBoolean("debug", false)) { return; }
-		tagMessage("[DEBUG] " + message);
+		String newmsg = "";
+		for(String line : message.split("\n")) {
+			newmsg += "\n[DEBUG] " + line;
+		}
+		tagMessage(newmsg.replaceFirst("\n", ""), "Console");
 	}
 	
 	public static void logCommand(Player player, String command) {
