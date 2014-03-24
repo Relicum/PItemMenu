@@ -174,6 +174,8 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 		String title = replaceVars(player, menu.getString("title"));
 
+		ItemStack item = null;
+		
 		String itemfee = menu.getString("itemfee", null);
 		if(!player.hasPermission("menu.itemfee.bypass." + menuName)) {
 			if(itemfee != null) {
@@ -181,7 +183,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 				Short feedur = 0; try{ feedur = Short.parseShort(itemfee.split(",")[0].split(":")[1]);}catch(Exception e){ feedur = 0; }
 				Integer feeamount= Integer.parseInt(itemfee.split(",")[1]);
 
-				ItemStack item = new ItemStack(feemat, feeamount, feedur);
+				item = new ItemStack(feemat, feeamount, feedur);
 				debugMessage("Itemfee found: " + item.toString());
 
 				if(player.getInventory().containsAtLeast(item, feeamount)) {
@@ -203,10 +205,12 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 						debugMessage("Player was granted access to the menu!");
 					} else {
 						debugMessage("Something went wrong while removong funds for " + player.getName());
+						if(itemfee != null) { player.getInventory().addItem(item); }
 						return;
 					}
 				} else {
 					tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
+					if(itemfee != null) { player.getInventory().addItem(item); }
 					return;
 				}
 			}
@@ -277,7 +281,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 
 			/* Building the item */
-			ItemStack item = new ItemStack(Material.getMaterial(itemID), amount, durability );
+			item = new ItemStack(Material.getMaterial(itemID), amount, durability );
 			inventory.setItem(pos, setName(item, display, lore));
 
 
