@@ -17,7 +17,7 @@ import static nl.plancke.pitemmenu.PItemMenu.*;
 import static nl.plancke.pitemmenu.Functions.*;
 
 public class Events implements Listener {
-
+	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		if(e.getPlayer().hasPermission("menu.admin")) {
@@ -113,30 +113,41 @@ public class Events implements Listener {
 				curCommand = replaceVars(player, curCommand);
 
 				if(curCommand.equals(getLocale("exitCommand"))) { player.closeInventory(); return; }
-
+				
 				logCommand(player, curCommand);
-				String[] curCommandSplit = curCommand.split(":", 2);		
-				switch(curCommandSplit[0]) {
-				case "op":
-					if(player.isOp()) { player.performCommand(curCommandSplit[1]); break; } // Execute when player is alreaady OP
-
-					setTempOp(player, true);
-					player.setOp(true);
-					try{ player.performCommand(curCommandSplit[1]); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
-					player.setOp(false);
-					setTempOp(player, false);
-					break;
-				case "console":
-					server.dispatchCommand(console, curCommandSplit[1]); 
-					break;
-				case"open":
-					player.performCommand("menu open " + curCommandSplit[1]); 
-					break;
-				case"broadcast":
-					server.broadcastMessage(curCommandSplit[1]); 
-					break;
-				default: player.performCommand(curCommandSplit[0]);
+				String[] curCommandSplit = curCommand.split(":", 2);
+				if(curCommandSplit[0].equalsIgnoreCase("op")) {
+						if(player.isOp()) { player.performCommand(curCommandSplit[1]); continue; } // Execute when player is already OP
+	
+						setTempOp(player, true);
+						player.setOp(true);
+						try{ player.performCommand(curCommandSplit[1]); } catch (Exception e) { player.setOp(false); setTempOp(player, false); throw e; }; 
+						player.setOp(false);
+						setTempOp(player, false);
+						continue;
 				}
+
+				if(curCommandSplit[0].equalsIgnoreCase("console")) {
+					server.dispatchCommand(console, curCommandSplit[1]); 
+					continue;
+				}
+				
+				if(curCommandSplit[0].equalsIgnoreCase("open")) {
+					player.performCommand("menu open " + curCommandSplit[1]); 
+					continue;
+				}
+				
+				if(curCommandSplit[0].equalsIgnoreCase("broadcast")) {
+					server.broadcastMessage(curCommandSplit[1]); 
+					continue;
+				}
+				
+				if(curCommandSplit[0].equalsIgnoreCase("chat")) {
+					player.chat(curCommandSplit[1]); 
+					continue;
+				}
+				
+				player.performCommand(curCommandSplit[0]);
 			}
 
 			if(playerMenu.getBoolean("closeonclick", false)) { player.closeInventory(); }
