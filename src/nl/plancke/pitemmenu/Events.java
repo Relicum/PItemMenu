@@ -78,16 +78,20 @@ public class Events implements Listener {
 			if(!player.hasPermission("menu.moneyfee.bypass." + playerMenu.getString("name") + ".slot." + slot)) {
 				if(moneyfee != 0) {
 					debugMessage("Moneyfee found: " + moneyfee);
-					if(econ.getBalance(player.getName()) >= moneyfee) {
-						if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
-							debugMessage("Player was granted access to the menu!");
+					if(econ == null) {
+						debugMessage("Economy is not enabled!");
+					} else {
+						if(econ.getBalance(player.getName()) >= moneyfee) {
+							if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
+								debugMessage("Player was granted access to the menu!");
+							} else {
+								debugMessage("Something went wrong while removong funds for " + player.getName());
+								return;
+							}
 						} else {
-							debugMessage("Something went wrong while removong funds for " + player.getName());
+							tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
 							return;
 						}
-					} else {
-						tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
-						return;
 					}
 				}
 			}
@@ -99,14 +103,16 @@ public class Events implements Listener {
 				if(!player.hasPermission(permission)) { return; } 
 			}
 
-			// Perform Command
+			// Perform Commands
 			ArrayList<String> commands = (ArrayList<String>) playerMenu.getStringList("items." + slot + ".command");
 			if(commands == null) { return; }
 
-			debugMessage("Slot Number: [" + slot + "]" +
+			debugMessage(
+					"Slot Number: [" + slot + "]" +
 					"\nCommands: " + commands +
 					"\nPermission: [" + playerMenu.getString(slot + ".permission") + "]" +
-					"\nFees: [Itemfee: " + itemfee + " - Moneyfee: " + moneyfee + "]");
+					"\nFees: [Itemfee: " + itemfee + " - Moneyfee: " + moneyfee + "]"
+					);
 
 			for(String curCommand : commands) {
 				debugMessage("Running " + curCommand +" as [" + player.getName() + "]");
@@ -116,6 +122,13 @@ public class Events implements Listener {
 				
 				logCommand(player, curCommand);
 				String[] curCommandSplit = curCommand.split(":", 2);
+				
+				/*
+				 * Adding all command prefixes here
+				 * Not using case structure because of Java6
+				 * Is possible with workaround but not easy
+				 * to use
+				 */
 				if(curCommandSplit[0].equalsIgnoreCase("op")) {
 						if(player.isOp()) { player.performCommand(curCommandSplit[1]); continue; } // Execute when player is already OP
 	
@@ -147,9 +160,29 @@ public class Events implements Listener {
 					continue;
 				}
 				
+				if(curCommandSplit[0].equalsIgnoreCase("econ")) {
+					if(econ == null) { debugMessage("Economy not enabled"); continue; }
+					String[] econSplit = curCommandSplit[1].split(":");
+					
+					if(econSplit[0].equalsIgnoreCase("withdraw")) {
+						econ.withdrawPlayer(player.getName(), Double.parseDouble(econSplit[1]));
+						debugMessage("Withdrawn " + econ.format(Double.parseDouble(econSplit[1])) + " from " + player.getName());
+						continue;
+					}
+					
+					if(econSplit[0].equalsIgnoreCase("deposit")) {
+						econ.depositPlayer(player.getName(), Double.parseDouble(econSplit[1]));
+						debugMessage("Added " + econ.format(Double.parseDouble(econSplit[1])) + " to " + player.getName());
+						continue;
+					}
+					
+					continue;
+				}
+				
 				player.performCommand(curCommandSplit[0]);
 			}
 
+			// Extra actions after all commands
 			if(playerMenu.getBoolean("closeonclick", false)) { player.closeInventory(); }
 			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.OpenMenu(player, playerMenu.getString("name")); }
 

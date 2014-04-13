@@ -91,11 +91,22 @@ public class Functions extends JavaPlugin{
 	}
 
 	public static String replaceVars(Player player, String string) {
-		string = string.replace("%player%", player.getName());
-		string = string.replace("%world%", player.getWorld().getName());
-		string = string.replace("%maxplayers%", Long.toString(server.getMaxPlayers()));
-		string = string.replace("%curplayers%", Integer.toString(server.getOnlinePlayers().length));
-		string = string.replace("%prefix%", prefix);
+		string = string.replaceAll("%player%", player.getName());
+		string = string.replaceAll("%world%", player.getWorld().getName());
+		string = string.replaceAll("%maxplayers%", Long.toString(server.getMaxPlayers()));
+		string = string.replaceAll("%curplayers%", Integer.toString(server.getOnlinePlayers().length));
+		string = string.replaceAll("%prefix%", prefix);
+		string = string.replaceAll("%exp%", player.getExp() + ""); //Temp fix for tostring on float
+		string = string.replaceAll("%level%", Integer.toString(player.getLevel()));
+		
+		if(econ != null) {
+			string = string.replaceAll("%balance%", Double.toString(econ.getBalance(player.getName())));
+			string = string.replaceAll("%bankbalance%", Double.toString(econ.bankBalance(player.getName()).balance));
+			string = string.replaceAll("%balanceformat%", econ.format(econ.getBalance(player.getName())));
+			string = string.replaceAll("%bankbalanceformat%", econ.format(econ.bankBalance(player.getName()).balance));
+			string = string.replaceAll("%currencyplural%", econ.currencyNamePlural());
+			string = string.replaceAll("%currencysingural%", econ.currencyNameSingular());
+		}
 		return colorize(string);
 	}
 	

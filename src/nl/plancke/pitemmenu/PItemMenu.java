@@ -85,7 +85,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		if (economyProvider != null) {
 			econ = economyProvider.getProvider();
 		} else {
-			debugMessage("Economy Failed!");
+			debugMessage("Economy failed to enable!");
 			return false;
 		}
 		debugMessage("Economy enabled!");
@@ -200,18 +200,22 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		if(!player.hasPermission("menu.moneyfee.bypass." + menuName)) {
 			if(moneyfee != 0) {
 				debugMessage("Moneyfee found: " + moneyfee);
-				if(econ.getBalance(player.getName()) >= moneyfee) {
-					if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
-						debugMessage("Player was granted access to the menu!");
+				if(econ == null) {
+					debugMessage("Economy is not enabled!");
+				} else {
+					if(econ.getBalance(player.getName()) >= moneyfee) {
+						if(econ.withdrawPlayer(player.getName(), moneyfee).transactionSuccess()) {
+							debugMessage("Player was granted access to the menu!");
+						} else {
+							debugMessage("Something went wrong while removong funds for " + player.getName());
+							if(itemfee != null) { player.getInventory().addItem(item); }
+							return;
+						}
 					} else {
-						debugMessage("Something went wrong while removong funds for " + player.getName());
+						tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
 						if(itemfee != null) { player.getInventory().addItem(item); }
 						return;
-					}
-				} else {
-					tagMessage(getLocale("fee.money").replaceAll("%amount%", econ.format(moneyfee)), player);
-					if(itemfee != null) { player.getInventory().addItem(item); }
-					return;
+					}	
 				}
 			}
 		}
