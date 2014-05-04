@@ -126,8 +126,7 @@ public class Events implements Listener {
 				/*
 				 * Adding all command prefixes here
 				 * Not using case structure because of Java6
-				 * Is possible with workaround but not easy
-				 * to use
+				 * Is possible with workaround tho...
 				 */
 				if(curCommandSplit[0].equalsIgnoreCase("op")) {
 						if(player.isOp()) { player.performCommand(curCommandSplit[1]); continue; } // Execute when player is already OP
@@ -140,27 +139,27 @@ public class Events implements Listener {
 						continue;
 				}
 
-				if(curCommandSplit[0].equalsIgnoreCase("console")) {
+				else if(curCommandSplit[0].equalsIgnoreCase("console")) {
 					server.dispatchCommand(console, curCommandSplit[1]); 
 					continue;
 				}
 				
-				if(curCommandSplit[0].equalsIgnoreCase("open")) {
+				else if(curCommandSplit[0].equalsIgnoreCase("open")) {
 					player.performCommand("menu open " + curCommandSplit[1]); 
 					continue;
 				}
 				
-				if(curCommandSplit[0].equalsIgnoreCase("broadcast")) {
+				else if(curCommandSplit[0].equalsIgnoreCase("broadcast")) {
 					server.broadcastMessage(curCommandSplit[1]); 
 					continue;
 				}
 				
-				if(curCommandSplit[0].equalsIgnoreCase("chat")) {
+				else if(curCommandSplit[0].equalsIgnoreCase("chat")) {
 					player.chat(curCommandSplit[1]); 
 					continue;
 				}
 				
-				if(curCommandSplit[0].equalsIgnoreCase("econ")) {
+				else if(curCommandSplit[0].equalsIgnoreCase("econ")) {
 					if(econ == null) { debugMessage("Economy not enabled"); continue; }
 					String[] econSplit = curCommandSplit[1].split(":");
 					
@@ -179,12 +178,14 @@ public class Events implements Listener {
 					continue;
 				}
 				
-				player.performCommand(curCommandSplit[0]);
+				else {
+					player.performCommand(curCommandSplit[0]);
+				}
 			}
 
 			// Extra actions after all commands
 			if(playerMenu.getBoolean("closeonclick", false)) { player.closeInventory(); }
-			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.OpenMenu(player, playerMenu.getString("name")); }
+			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.openMenu(player, playerMenu.getString("name")); }
 
 		} catch (Exception e) { e.printStackTrace(); player.closeInventory(); }
 	}

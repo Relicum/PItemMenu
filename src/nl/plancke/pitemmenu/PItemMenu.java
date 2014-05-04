@@ -25,6 +25,7 @@ import org.bukkit.command.*;
 import org.bukkit.configuration.file.*;
 
 import net.milkbowl.vault.economy.Economy;
+import nl.plancke.pitemmenu.api.*;
 import static nl.plancke.pitemmenu.Functions.*;
 
 public final class PItemMenu extends JavaPlugin implements Listener {
@@ -52,7 +53,6 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 		server.getPluginManager().registerEvents(new Events(), this);
 
-
 		debugMessage("Checking for updates");
 		if(Updater.hasUpdate()) {
 			ArrayList<String> info = Updater.getInfo();
@@ -65,6 +65,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 		tagMessage("Enabled v" + version + "!");
 	}
+	
 	@Override
 	public void onDisable() {
 		tagMessage("Disabled v" + version + "!");
@@ -124,7 +125,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 
 				String name = args[1];
 				if(sender.isOp() || sender.hasPermission("menu.open." + name)) { // Permission Check					
-					OpenMenu(player, name);
+					openMenu(player, name);
 				} else {
 					tagMessage(getLocale("menu.notPerms").replace("%menu%", name), player);
 				}
@@ -145,7 +146,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 		return itemStack;
 	}
 
-	public static void OpenMenu(Player player, String menuName) {
+	public static void openMenu(Player player, String menuName) {
 		File menuFile = new File(dataFolder + File.separator + "menus" + File.separator + menuName + ".yml");
 		if(!menuFile.exists()) { // Check if the menu exists
 			tagMessage(getLocale("menu.notExist").replace("%menu%", menuName), player);
