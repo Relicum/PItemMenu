@@ -1,6 +1,8 @@
 package nl.plancke.pitemmenu;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import net.minecraft.util.org.apache.commons.lang3.StringEscapeUtils;
@@ -93,6 +95,9 @@ public class Functions extends JavaPlugin{
 	public static String replaceVars(Player player, String string) {
 		string = string.replaceAll("%player%", player.getName());
 		string = string.replaceAll("%world%", player.getWorld().getName());
+		string = string.replaceAll("%wtime%", Long.toString(player.getWorld().getTime()));
+		string = string.replaceAll("%time%", new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime()));
+		string = string.replaceAll("%date%", new SimpleDateFormat("yyyy/MMM/dd").format(Calendar.getInstance().getTime()));
 		string = string.replaceAll("%maxplayers%", Long.toString(server.getMaxPlayers()));
 		string = string.replaceAll("%curplayers%", Integer.toString(server.getOnlinePlayers().length));
 		string = string.replaceAll("%prefix%", prefix);

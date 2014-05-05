@@ -53,7 +53,8 @@ public class Menu implements Listener {
 		this.title = title;
 	}
 	
-	public void openMenu(Menu menu, String playerName){
+	public void open(String playerName){
+		Menu menu = this;
 		Player player = Bukkit.getPlayerExact(playerName);
 		
 		Inventory inventory = Bukkit.createInventory(player, menu.getSize(), menu.getTitle());
@@ -69,8 +70,8 @@ public class Menu implements Listener {
 		this.inventory = inventory;
 		
 		player.closeInventory();
-		players.put(playerName , this);
-		player.openInventory(this.inventory);
+		players.put(playerName , menu);
+		player.openInventory(menu.inventory);
 		
 		Bukkit.getPluginManager().registerEvents(new MenuEventHandler(players), plugin);
 	}
