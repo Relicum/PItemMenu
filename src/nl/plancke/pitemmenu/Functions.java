@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import net.minecraft.util.org.apache.commons.lang3.StringEscapeUtils;
-
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -36,7 +34,7 @@ public class Functions extends JavaPlugin{
 	}
 
 	public static String colorize(String string) { 
-		return addUnicode(string.replaceAll("(&([a-fk-or0-9]))", "\u00A7$2")); 
+		return string.replaceAll("(&([a-fk-or0-9]))", "\u00A7$2"); 
 	}
 	public static ArrayList<String> colorizeArray (ArrayList<String> arrayList) {
 		ArrayList<String> newArrayList = new ArrayList<String>();
@@ -127,9 +125,5 @@ public class Functions extends JavaPlugin{
 			}
 		}
 		return true;
-	}
-	
-	public static String addUnicode(String input) {
-		return StringEscapeUtils.unescapeJava(input);
 	}
 }

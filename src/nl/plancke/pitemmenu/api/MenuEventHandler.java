@@ -54,9 +54,4 @@ public class MenuEventHandler implements Listener {
         
         Bukkit.getServer().getPluginManager().callEvent(e);
 	}
-	
-	@EventHandler
-    public void onMenuClick(MenuEvent event) {
-    	Bukkit.getServer().broadcastMessage(event.getCommands().toString());
-    }
 }

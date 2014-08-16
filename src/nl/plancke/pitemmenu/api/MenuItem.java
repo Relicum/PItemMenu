@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 public class MenuItem {
@@ -32,7 +31,6 @@ public class MenuItem {
 	
 	public void addCommand(String command){
 		commands.add(command);
-		Bukkit.getServer().broadcastMessage(command);
 	}
 	
 	public List<String> getCommands(){

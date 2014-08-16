@@ -188,5 +188,5 @@ public class Events implements Listener {
 			if(playerMenu.getBoolean("reopenonclick", false)) { PItemMenu.openMenu(player, playerMenu.getString("name")); }
 
 		} catch (Exception e) { e.printStackTrace(); player.closeInventory(); }
-	}
+	}     
 }

@@ -25,7 +25,6 @@ import org.bukkit.command.*;
 import org.bukkit.configuration.file.*;
 
 import net.milkbowl.vault.economy.Economy;
-import nl.plancke.pitemmenu.api.*;
 import static nl.plancke.pitemmenu.Functions.*;
 
 public final class PItemMenu extends JavaPlugin implements Listener {
