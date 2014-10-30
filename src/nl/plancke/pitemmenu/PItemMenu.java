@@ -32,7 +32,7 @@ public final class PItemMenu extends JavaPlugin implements Listener {
 	public static Server server;
 	public static ConsoleCommandSender console;
 	public static FileConfiguration config, locale, specialItem;
-	public static Map<Player, FileConfiguration> players = new HashMap<Player, FileConfiguration>();
+	public static Map<Player, FileConfiguration> players = new WeakHashMap<Player, FileConfiguration>();
 	public static Map<String, Inventory> inventories = new HashMap<String, Inventory>();
 	public static Map<String, FileConfiguration> menus = new HashMap<String, FileConfiguration>();
 	public static File dataFolder;
